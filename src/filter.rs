@@ -35,6 +35,7 @@ where
     let s = legacy_command_compatibility(&s)?;
     let s = legacy_ping_command_compatibility(s)?;
     let s = suppress_by_semicolon(s)?;
+    let s = suppress_by_exclamation(s)?;
     let s = replace_emoji(s);
     let s = replace_uri(&s);
     let s = replace_codeblock(&s);
@@ -100,6 +101,12 @@ fn suppress_by_semicolon(mes: &str) -> Option<&str> {
 }
 
 #[inline]
+fn suppress_by_exclamation(mes: &str) -> Option<&str> {
+    (!mes.starts_with('!') || mes.starts_with("!!")).then_some(mes)
+}
+
+
+#[inline]
 fn suppress_whitespaces(mes: &str) -> Option<&str> {
     (!mes.trim().is_empty()).then_some(mes)
 }
@@ -150,6 +157,10 @@ fn replace_rule_unit_test() {
     assert_eq!(suppress_by_semicolon("hello"), Some("hello"));
     assert_eq!(suppress_by_semicolon(";hello"), None);
     assert_eq!(suppress_by_semicolon(";;hello"), Some(";;hello"));
+
+    assert_eq!(suppress_by_exclamation("hello"), Some("hello"));
+    assert_eq!(suppress_by_exclamation("!hello"), None);
+    assert_eq!(suppress_by_exclamation("!!hello"), Some("!!hello"));
 
     assert_eq!(replace_uri("hello"), "hello");
     assert_eq!(replace_uri("ms-settings:privacy-microphone"), "。URI省略。");
